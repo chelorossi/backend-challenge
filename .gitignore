@@ -10,7 +10,11 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+# lib/ and lib64/ are typically in venv/ - be more specific to avoid matching infrastructure/lib/
+venv/lib/
+venv/lib64/
+env/lib/
+env/lib64/
 lib64/
 parts/
 sdist/
@@ -135,3 +139,6 @@ local.config.*
 # package-lock.json
 # yarn.lock
 # pnpm-lock.yaml
+
+# Explicitly allow infrastructure/lib/ (TypeScript source code)
+!infrastructure/lib/
