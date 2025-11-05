@@ -13,7 +13,9 @@ from src.processor.handler import handler as processor_handler
 @pytest.fixture
 def mock_sqs_client():
     """Mock SQS client for API."""
-    with patch("src.api.handler.sqs_client") as mock_sqs:
+    with patch("src.api.handler.get_sqs_client") as mock_get_client:
+        mock_sqs = MagicMock()
+        mock_get_client.return_value = mock_sqs
         yield mock_sqs
 
 

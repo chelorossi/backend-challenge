@@ -16,8 +16,23 @@ from .validators import validate_task_request
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-# Initialize SQS client
-sqs_client = boto3.client("sqs")
+
+def get_sqs_client():
+    """
+    Get SQS client, configured for LocalStack if AWS_ENDPOINT_URL is set.
+
+    Returns:
+        boto3 SQS client
+    """
+    endpoint_url = os.environ.get("AWS_ENDPOINT_URL")
+    if endpoint_url:
+        return boto3.client(
+            "sqs",
+            endpoint_url=endpoint_url,
+            aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID", "test"),
+            aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY", "test"),
+        )
+    return boto3.client("sqs")
 
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
@@ -94,9 +109,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
     # Send message to SQS FIFO queue
     try:
+        # Get SQS client (lazy initialization for LocalStack support)
+        sqs = get_sqs_client()
         # Use MessageGroupId for FIFO ordering - using a single group for strict ordering
         # Use MessageDeduplicationId to prevent duplicates
-        response = sqs_client.send_message(
+        response = sqs.send_message(
             QueueUrl=queue_url,
             MessageBody=json.dumps(message_body),
             MessageGroupId="task-processing",  # Single group for strict FIFO ordering

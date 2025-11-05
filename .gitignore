@@ -81,6 +81,11 @@ cdk.context.json
 *.swp
 *.swo
 
+# LocalStack
+localstack-data/
+localstack-outputs.json
+tests/localstack-outputs.json
+
 # AWS
 .aws-sam/
 samconfig.toml
@@ -113,6 +118,9 @@ samconfig.toml
 ehthumbs.db
 Thumbs.db
 Desktop.ini
+
+# Plan
+task-management-api-architecture.plan.md
 
 # Logs
 *.log

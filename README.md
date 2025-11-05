@@ -1,5 +1,7 @@
 # Backend Engineering Challenge
 
+**Version 2.0.0** - Now with LocalStack integration for comprehensive testing!
+
 Welcome to our backend engineering challenge! This project is designed to assess your skills in **Python**, **TypeScript**, **AWS**, and **AWS CDK**.
 
 ## Overview
@@ -276,15 +278,36 @@ export CDK_DEFAULT_REGION=us-east-1
 # Activate virtual environment
 source venv/bin/activate
 
-# Run all tests with coverage
-pytest tests/ --cov=src --cov-report=term-missing
+# Run all tests with coverage (excludes LocalStack tests)
+pytest tests/ -m "not localstack" --cov=src --cov-report=term-missing
 
 # Run specific test file
 pytest tests/unit/test_api_handler.py -v
 
-# Run integration tests
-pytest tests/integration/ -v
+# Run integration tests (moto-based)
+pytest tests/integration/test_e2e.py -v
 ```
+
+#### LocalStack Integration Tests
+
+For more realistic testing with actual CDK infrastructure:
+
+```bash
+# Start LocalStack
+docker-compose up -d
+
+# Deploy CDK infrastructure to LocalStack
+./scripts/setup-localstack-test.sh
+
+# Run LocalStack tests
+pytest tests/integration/test_localstack.py -v -m localstack
+
+# Cleanup
+./scripts/teardown-localstack-test.sh
+docker-compose down
+```
+
+See [docs/LOCALSTACK_TESTING.md](docs/LOCALSTACK_TESTING.md) for detailed instructions.
 
 #### Test Coverage
 
@@ -303,8 +326,25 @@ tests/
 │   ├── test_validators.py        # Validation logic tests
 │   └── test_processor.py         # Processor handler tests
 └── integration/
-    └── test_e2e.py               # End-to-end integration tests
+    ├── test_e2e.py               # End-to-end integration tests (moto-based)
+    └── test_localstack.py        # LocalStack integration tests (CDK infrastructure)
 ```
+
+#### Test Markers
+
+- `@pytest.mark.localstack`: LocalStack tests (requires LocalStack running)
+
+Run tests by marker or directory:
+
+```bash
+pytest -m localstack    # Only LocalStack tests (use --no-cov to skip coverage check)
+pytest -m "not localstack"  # All tests except LocalStack (unit + mocked integration)
+pytest tests/integration/   # All integration tests (mocked + LocalStack)
+pytest tests/unit/          # Only unit tests
+pytest tests/              # All tests including LocalStack (for full coverage, meets 90% threshold)
+```
+
+**Note:** The 90% coverage threshold is only enforced when running the full test suite (`pytest tests/`). When running marker-specific tests or individual directories, coverage may be lower since those test categories don't cover all code paths. The full test suite must meet the 90% coverage requirement.
 
 ### Code Quality
 
@@ -458,5 +498,3 @@ Potential improvements for production:
 5. **CI/CD**: Set up automated deployment pipeline
 6. **Database**: Store task state and history
 7. **Notifications**: Add SNS notifications for task completion
-
-Good luck! 🚀
